@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEFL ITP 리스닝 플래시카드 암기장</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Pretendard -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            perspective: 1000px;
+        }
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 h-full flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700/60 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600/30 p-2.5 rounded-xl border border-indigo-500/30">
+                    <i class="fa-solid fa-clone text-xl text-indigo-400"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">TOEFL ITP 리스닝 플래시카드 200</h1>
+                    <p class="text-xs text-slate-400">핵심 관용구·캠퍼스·학술 강의 인터랙티브 암기장</p>
+                </div>
+            </div>
+            <!-- Global Controls -->
+            <div class="flex items-center gap-2">
+                <button onclick="app.shuffleCards()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 border border-slate-600">
+                    <i class="fa-solid fa-shuffle text-indigo-400"></i> 카드 섞기
+                </button>
+                <button onclick="app.resetProgress()" class="bg-slate-700 hover:bg-rose-900/40 text-slate-200 hover:text-rose-300 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 border border-slate-600">
+                    <i class="fa-solid fa-rotate-right"></i> 초기화
+                </button>
+            </div>
+        </div>
+        <!-- Progress Bar Strip -->
+        <div class="bg-slate-900/60 px-4 py-2 border-t border-slate-700/50">
+            <div class="max-w-4xl mx-auto flex items-center justify-between text-xs text-slate-300 mb-1">
+                <span class="font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-chart-pie text-indigo-400"></i> 암기 진도율
+                </span>
+                <span id="progressText" class="font-bold text-emerald-400">0 / 200 (0%)</span>
+            </div>
+            <div class="max-w-4xl mx-auto w-full bg-slate-800 rounded-full h-2 overflow-hidden p-0.5 border border-slate-700">
+                <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col justify-between gap-6 overflow-hidden">
+
+        <!-- Navigation & Filter Bar -->
+        <div class="space-y-3">
+            <!-- Part Selectors -->
+            <div class="flex items-center gap-1 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 overflow-x-auto">
+                <button onclick="app.setPart('all')" id="part-all" class="part-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-indigo-600 text-white shadow-md">
+                    전체 (200)
+                </button>
+                <button onclick="app.setPart('partA')" id="part-partA" class="part-btn px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition text-slate-300 hover:text-white hover:bg-slate-700/50">
+                    Part A: 일상 대화 (100)
+                </button>
+                <button onclick="app.setPart('partB')" id="part-partB" class="part-btn px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition text-slate-300 hover:text-white hover:bg-slate-700/50">
+                    Part B: 캠퍼스 생활 (50)
+                </button>
+                <button onclick="app.setPart('partC')" id="part-partC" class="part-btn px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition text-slate-300 hover:text-white hover:bg-slate-700/50">
+                    Part C: 학술 강의 (50)
+                </button>
+            </div>
+
+            <!-- Status Filters (All / Known / Unknown) -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 bg-slate-800/50 p-1 rounded-xl border border-slate-700/40">
+                    <button onclick="app.setStatusFilter('all')" id="status-all" class="status-btn px-3 py-1 rounded-lg text-xs font-medium transition bg-slate-700 text-white shadow-sm">
+                        전체 보기
+                    </button>
+                    <button onclick="app.setStatusFilter('known')" id="status-known" class="status-btn px-3 py-1 rounded-lg text-xs font-medium transition text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-check text-emerald-400 mr-1"></i> 알아요 (<span id="countKnown">0</span>)
+                    </button>
+                    <button onclick="app.setStatusFilter('unknown')" id="status-unknown" class="status-btn px-3 py-1 rounded-lg text-xs font-medium transition text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-bookmark text-amber-400 mr-1"></i> 복습 필요 (<span id="countUnknown">0</span>)
+                    </button>
+                </div>
+                <div class="text-xs text-slate-400 font-medium">
+                    카드 <span id="currentIndexDisplay" class="text-indigo-400 font-bold">1</span> / <span id="totalIndexDisplay">200</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flashcard Stage (3D Flip Card) -->
+        <div class="flex-1 flex flex-col items-center justify-center relative my-2">
+            <div id="flashcard" onclick="app.flipCard()" class="w-full max-w-2xl h-72 sm:h-80 cursor-pointer perspective-1000 select-none group">
+                <div id="cardInner" class="relative w-full h-full duration-500 transform-style-3d shadow-2xl rounded-3xl">
+                    
+                    <!-- Card Front (English Expression) -->
+                    <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-slate-800 to-slate-850 border border-slate-700/80 rounded-3xl p-8 flex flex-col justify-between backface-hidden shadow-xl group-hover:border-indigo-500/50 transition">
+                        <div class="flex justify-between items-center">
+                            <span id="cardBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                Part A &bull; 감정·태도
+                            </span>
+                            <span class="text-xs font-mono text-slate-400">#<span id="cardId">1</span></span>
+                        </div>
+                        <div class="text-center my-auto">
+                            <p class="text-xs text-slate-400 mb-2 uppercase tracking-wider font-medium">English Expression</p>
+                            <h2 id="cardEn" class="text-xl sm:text-2xl font-bold text-white tracking-tight px-2">
+                                You can say that again.
+                            </h2>
+                        </div>
+                        <div class="text-center">
+                            <span class="inline-flex items-center gap-1.5 text-xs text-indigo-400 bg-indigo-950/60 px-3.5 py-1.5 rounded-full border border-indigo-800/50">
+                                <i class="fa-solid fa-hand-pointer"></i> 카드를 클릭하거나 스페이스바를 눌러 뜻 확인
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Card Back (Korean Meaning) -->
+                    <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-slate-850 to-indigo-950/40 border border-indigo-500/40 rounded-3xl p-8 flex flex-col justify-between backface-hidden rotate-y-180 shadow-xl">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                <i class="fa-solid fa-language mr-1"></i> 한글 뜻 / 의미
+                            </span>
+                            <span class="text-xs font-mono text-slate-400">#<span id="cardIdBack">1</span></span>
+                        </div>
+                        <div class="text-center my-auto">
+                            <p class="text-xs text-indigo-300/80 mb-2 uppercase tracking-wider font-medium">Korean Meaning</p>
+                            <h2 id="cardKo" class="text-xl sm:text-2xl font-bold text-emerald-300 tracking-tight px-2">
+                                전적으로 동의해.
+                            </h2>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-xs text-slate-400">
+                                영어 표현: <span id="cardEnSub" class="text-slate-200 font-medium">You can say that again.</span>
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls: Prev, Flip, Known/Unknown, Next -->
+        <div class="flex flex-col gap-3">
+            <!-- Knowledge Status Buttons -->
+            <div class="flex items-center justify-center gap-3">
+                <button onclick="app.markKnown(true)" id="knownBtn" class="flex-1 max-w-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i> 알아요 (Known)
+                </button>
+                <button onclick="app.markKnown(false)" id="unknownBtn" class="flex-1 max-w-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-bookmark text-amber-400"></i> 복습 필요
+                </button>
+            </div>
+
+            <!-- Navigation Bar -->
+            <div class="flex items-center justify-between gap-4">
+                <button onclick="app.prevCard()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-3 px-4 rounded-2xl text-sm font-medium transition flex items-center justify-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-arrow-left"></i> 이전 카드
+                </button>
+                <button onclick="app.flipCard()" class="bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-2xl text-sm font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+                    <i class="fa-solid fa-rotate"></i> 뒤집기 (Flip)
+                </button>
+                <button onclick="app.nextCard()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-3 px-4 rounded-2xl text-sm font-medium transition flex items-center justify-center gap-2 shadow-sm">
+                    다음 카드 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800/40 border-t border-slate-800 py-3 text-center text-xs text-slate-500">
+        TOEFL ITP Listening Flashcard App &bull; Use Arrow Keys &larr; &rarr; and Spacebar to navigate
+    </footer>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-slate-100 border border-slate-700 px-4 py-3 rounded-2xl text-xs font-medium shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2.5">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMsg">알림 메시지</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Full Dataset of 200 Expressions
+        const rawData = [
+            // Part A (1~100)
+            { id: 1, part: "partA", category: "Part A: 감정·태도", en: "You can say that again.", ko: "전적으로 동의해." },
+            { id: 2, part: "partA", category: "Part A: 감정·태도", en: "Tell me about it.", ko: "내 말이 그 말이야 / 나도 잘 알아." },
+            { id: 3, part: "partA", category: "Part A: 감정·태도", en: "I couldn't agree with you more.", ko: "전적으로 동의해." },
+            { id: 4, part: "partA", category: "Part A: 감정·태도", en: "That makes two of us.", ko: "나도 마찬가지야." },
+            { id: 5, part: "partA", category: "Part A: 감정·태도", en: "You took the words right out of my mouth.", ko: "내가 하려던 말이 바로 그거야." },
+            { id: 6, part: "partA", category: "Part A: 감정·태도", en: "I'm all for it.", ko: "전적으로 찬성해." },
+            { id: 7, part: "partA", category: "Part A: 감정·태도", en: "Count me in.", ko: "나도 끼워줘 / 나도 참여할게." },
+            { id: 8, part: "partA", category: "Part A: 감정·태도", en: "Count me out.", ko: "나는 빼줘." },
+            { id: 9, part: "partA", category: "Part A: 감정·태도", en: "Don't count on it.", ko: "그것을 기대하지 마." },
+            { id: 10, part: "partA", category: "Part A: 감정·태도", en: "I wouldn't bet on it.", ko: "장담할 수 없어 / 가능성이 낮아." },
+            { id: 11, part: "partA", category: "Part A: 감정·태도", en: "Don't hold your breath.", ko: "너무 기대하지 마 / 오래 걸릴 거야." },
+            { id: 12, part: "partA", category: "Part A: 감정·태도", en: "It's out of the question.", ko: "그것은 불가능해 / 논의할 가치도 없어." },
+            { id: 13, part: "partA", category: "Part A: 감정·태도", en: "No way.", ko: "절대 안 돼 / 말도 안 돼." },
+            { id: 14, part: "partA", category: "Part A: 감정·태도", en: "Not on your life.", ko: "절대로 안 돼." },
+            { id: 15, part: "partA", category: "Part A: 감정·태도", en: "I have mixed feelings about it.", ko: "그것에 대해 찬반 양론이 있어 / 기분이 복잡해." },
+            { id: 16, part: "partA", category: "Part A: 감정·태도", en: "I'm on the fence.", ko: "아직 결정을 못 내렸어 / 중립이야." },
+            { id: 17, part: "partA", category: "Part A: 감정·태도", en: "It's up to you.", ko: "네 결정에 달렸어." },
+            { id: 18, part: "partA", category: "Part A: 감정·태도", en: "It makes no difference to me.", ko: "나에게는 아무 상관없어." },
+            { id: 19, part: "partA", category: "Part A: 감정·태도", en: "Suit yourself.", ko: "네 마음대로 해." },
+            { id: 20, part: "partA", category: "Part A: 감정·태도", en: "Take it or leave it.", ko: "좋으면 하고 싫으면 관둬." },
+            { id: 21, part: "partA", category: "Part A: 감정·태도", en: "I'm fed up with it.", ko: "그것에 진절머리가 나." },
+            { id: 22, part: "partA", category: "Part A: 감정·태도", en: "It gets on my nerves.", ko: "그것이 내 신경을 건드려 / 짜증 나." },
+            { id: 23, part: "partA", category: "Part A: 감정·태도", en: "It drives me crazy.", ko: "그것이 나를 미치게 해." },
+            { id: 24, part: "partA", category: "Part A: 감정·태도", en: "I'm beside myself.", ko: "제정신이 아니야 / 몹시 흥분했어." },
+            { id: 25, part: "partA", category: "Part A: 감정·태도", en: "Keep your shirt on.", ko: "진정해 / 화내지 마." },
+            { id: 26, part: "partA", category: "Part A: 상태·상황 묘사", en: "It's a piece of cake.", ko: "식은 죽 먹기야 / 아주 쉬워." },
+            { id: 27, part: "partA", category: "Part A: 상태·상황 묘사", en: "It's a breeze.", ko: "아주 쉬운 일이야." },
+            { id: 28, part: "partA", category: "Part A: 상태·상황 묘사", en: "Easier said than done.", ko: "말이 쉽지 행동은 어려워." },
+            { id: 29, part: "partA", category: "Part A: 상태·상황 묘사", en: "It's over my head.", ko: "내가 이해하기엔 너무 어려워." },
+            { id: 30, part: "partA", category: "Part A: 상태·상황 묘사", en: "I'm in over my head.", ko: "감당할 수 없는 일에 빠졌어." },
+            { id: 31, part: "partA", category: "Part A: 상태·상황 묘사", en: "It rings a bell.", ko: "어디서 들어본 것 같아 / 기억날 듯해." },
+            { id: 32, part: "partA", category: "Part A: 상태·상황 묘사", en: "It slipped my mind.", ko: "깜빡 잊어버렸어." },
+            { id: 33, part: "partA", category: "Part A: 상태·상황 묘사", en: "It's on the tip of my tongue.", ko: "혀끝에서 맴도는데 생각이 안 나." },
+            { id: 34, part: "partA", category: "Part A: 상태·상황 묘사", en: "I'm drawing a blank.", ko: "전혀 기억이 안 나." },
+            { id: 35, part: "partA", category: "Part A: 상태·상황 묘사", en: "Out of the blue.", ko: "갑자기 / 예고 없이." },
+            { id: 36, part: "partA", category: "Part A: 상태·상황 묘사", en: "Once in a blue moon.", ko: "아주 드물게 / 가뭄에 콩 나듯." },
+            { id: 37, part: "partA", category: "Part A: 상태·상황 묘사", en: "Every now and then.", ko: "가끔씩." },
+            { id: 38, part: "partA", category: "Part A: 상태·상황 묘사", en: "Around the clock.", ko: "24시간 내내 / 쉬지 않고." },
+            { id: 39, part: "partA", category: "Part A: 상태·상황 묘사", en: "At the eleventh hour.", ko: "마지막 순간에 / 아슬아슬하게." },
+            { id: 40, part: "partA", category: "Part A: 상태·상황 묘사", en: "In the nick of time.", ko: "딱 제시간에 / 아슬아슬하게 늦지 않고." },
+            { id: 41, part: "partA", category: "Part A: 상태·상황 묘사", en: "Better late than never.", ko: "안 하는 것보다 늦게라도 하는 게 낫다." },
+            { id: 42, part: "partA", category: "Part A: 상태·상황 묘사", en: "Call it a day.", ko: "오늘 일은 이만 마치다." },
+            { id: 43, part: "partA", category: "Part A: 상태·상황 묘사", en: "Burn the midnight oil.", ko: "밤늦게까지 공부하다/일하다." },
+            { id: 44, part: "partA", category: "Part A: 상태·상황 묘사", en: "Hit the books.", ko: "열심히 공부하다." },
+            { id: 45, part: "partA", category: "Part A: 상태·상황 묘사", en: "Hit the sack / hay.", ko: "잠자리에 들다." },
+            { id: 46, part: "partA", category: "Part A: 상태·상황 묘사", en: "Under the weather.", ko: "몸이 좀 안 좋은 / 컨디션이 나쁜." },
+            { id: 47, part: "partA", category: "Part A: 상태·상황 묘사", en: "Back on one's feet.", ko: "병이나 어려움에서 회복하다." },
+            { id: 48, part: "partA", category: "Part A: 상태·상황 묘사", en: "Cost an arm and a leg.", ko: "엄청나게 비싸다." },
+            { id: 49, part: "partA", category: "Part A: 상태·상황 묘사", en: "Break the bank.", ko: "돈을 너무 많이 쓰다 / 파산하다." },
+            { id: 50, part: "partA", category: "Part A: 상태·상황 묘사", en: "Make ends meet.", ko: "수입과 지출을 맞추다 / 겨우 먹고살다." },
+            { id: 51, part: "partA", category: "Part A: 상태·상황 묘사", en: "On a shoestring budget.", ko: "아주 빠듯한 예산으로." },
+            { id: 52, part: "partA", category: "Part A: 상태·상황 묘사", en: "Tighten one's belt.", ko: "허리띠를 졸라매다 / 절약하다." },
+            { id: 53, part: "partA", category: "Part A: 상태·상황 묘사", en: "In the red.", ko: "적자인 / 빚을 진." },
+            { id: 54, part: "partA", category: "Part A: 상태·상황 묘사", en: "In the black.", ko: "흑자인." },
+            { id: 55, part: "partA", category: "Part A: 상태·상황 묘사", en: "Chip in.", ko: "돈을 조금씩 보태다 / 거들다." },
+            { id: 56, part: "partA", category: "Part A: 행동·조언", en: "Give someone a hand.", ko: "누군가를 도와주다." },
+            { id: 57, part: "partA", category: "Part A: 행동·조언", en: "Keep an eye on.", ko: "~을 잘 지켜보다 / 돌보다." },
+            { id: 58, part: "partA", category: "Part A: 행동·조언", en: "Keep one's fingers crossed.", ko: "행운을 빌다." },
+            { id: 59, part: "partA", category: "Part A: 행동·조언", en: "Break a leg.", ko: "행운을 빌어 / 공연 잘해." },
+            { id: 60, part: "partA", category: "Part A: 행동·조언", en: "Bite the bullet.", ko: "이를 악물고 어려운 일을 해내다." },
+            { id: 61, part: "partA", category: "Part A: 행동·조언", en: "Face the music.", ko: "자신이 한 일의 결과를 받아들이다." },
+            { id: 62, part: "partA", category: "Part A: 행동·조언", en: "Bite off more than one can chew.", ko: "능력 이상의 일을 맡다." },
+            { id: 63, part: "partA", category: "Part A: 행동·조언", en: "Cut corners.", ko: "절차나 비용을 줄이다 / 대충 하다." },
+            { id: 64, part: "partA", category: "Part A: 행동·조언", en: "Go the extra mile.", ko: "기대 이상의 노력을 기울이다." },
+            { id: 65, part: "partA", category: "Part A: 행동·조언", en: "Leave no stone unturned.", ko: "모든 수단과 방법을 다 동원하다." },
+            { id: 66, part: "partA", category: "Part A: 행동·조언", en: "Play it by ear.", ko: "상황을 봐가며 임기응변으로 하다." },
+            { id: 67, part: "partA", category: "Part A: 행동·조언", en: "Get the ball rolling.", ko: "일을 시작하다." },
+            { id: 68, part: "partA", category: "Part A: 행동·조언", en: "Call off.", ko: "~을 취소하다." },
+            { id: 69, part: "partA", category: "Part A: 행동·조언", en: "Put off.", ko: "~을 연기하다 / 미루다." },
+            { id: 70, part: "partA", category: "Part A: 행동·조언", en: "Look into.", ko: "~을 조사하다 / 알아보다." },
+            { id: 71, part: "partA", category: "Part A: 행동·조언", en: "Run into.", ko: "~와 우연히 마주치다 / 어려움에 부딪히다." },
+            { id: 72, part: "partA", category: "Part A: 행동·조언", en: "Run out of.", ko: "~이 다 떨어지다." },
+            { id: 73, part: "partA", category: "Part A: 행동·조언", en: "Turn down.", ko: "거절하다 / 소리를 줄이다." },
+            { id: 74, part: "partA", category: "Part A: 행동·조언", en: "Turn up.", ko: "나타나다 / 소리를 높이다." },
+            { id: 75, part: "partA", category: "Part A: 행동·조언", en: "Figure out.", ko: "이해하다 / 해결책을 찾아내다." },
+            { id: 76, part: "partA", category: "Part A: 행동·조언", en: "Work out.", ko: "잘 풀리다 / 운동하다." },
+            { id: 77, part: "partA", category: "Part A: 행동·조언", en: "Make up for.", ko: "~을 보충하다 / 만회하다." },
+            { id: 78, part: "partA", category: "Part A: 행동·조언", en: "Put up with.", ko: "~을 참다 / 견디다." },
+            { id: 79, part: "partA", category: "Part A: 행동·조언", en: "Get rid of.", ko: "~을 없애다 / 제거하다." },
+            { id: 80, part: "partA", category: "Part A: 행동·조언", en: "Take advantage of.", ko: "~을 이용하다 / 활용하다." },
+            { id: 81, part: "partA", category: "Part A: 인간관계", en: "See eye to eye.", ko: "의견이 일치하다." },
+            { id: 82, part: "partA", category: "Part A: 인간관계", en: "Get along with.", ko: "~와 잘 지내다." },
+            { id: 83, part: "partA", category: "Part A: 인간관계", en: "Break the ice.", ko: "어색한 분위기를 깨다." },
+            { id: 84, part: "partA", category: "Part A: 인간관계", en: "Beat around the bush.", ko: "돌려 말하다 / 요점을 피하다." },
+            { id: 85, part: "partA", category: "Part A: 인간관계", en: "Get to the point.", ko: "본론으로 들어가다." },
+            { id: 86, part: "partA", category: "Part A: 인간관계", en: "Spill the beans.", ko: "비밀을 누설하다." },
+            { id: 87, part: "partA", category: "Part A: 인간관계", en: "Let the cat out of the bag.", ko: "실수로 비밀을 폭로하다." },
+            { id: 88, part: "partA", category: "Part A: 인간관계", en: "Pull someone's leg.", ko: "누군가를 놀리다 / 농담하다." },
+            { id: 89, part: "partA", category: "Part A: 인간관계", en: "Give someone the cold shoulder.", ko: "누군가를 냉대하다 / 무시하다." },
+            { id: 90, part: "partA", category: "Part A: 인간관계", en: "Turn a deaf ear to.", ko: "~에 귀를 기울이지 않다 / 무시하다." },
+            { id: 91, part: "partA", category: "Part A: 인간관계", en: "Bark up the wrong tree.", ko: "번지수를 잘못 짚다 / 헛다리짚다." },
+            { id: 92, part: "partA", category: "Part A: 인간관계", en: "In the same boat.", ko: "같은 처지에 있는." },
+            { id: 93, part: "partA", category: "Part A: 인간관계", en: "On the same page.", ko: "같은 생각을 하는 / 상황을 공유하는." },
+            { id: 94, part: "partA", category: "Part A: 인간관계", en: "Take someone's word for it.", ko: "누군가의 말을 그대로 믿다." },
+            { id: 95, part: "partA", category: "Part A: 인간관계", en: "Give someone the benefit of the doubt.", ko: "의심스럽지만 일단 믿어주다." },
+            { id: 96, part: "partA", category: "Part A: 인간관계", en: "Clear the air.", ko: "오해나 불화를 풀다." },
+            { id: 97, part: "partA", category: "Part A: 인간관계", en: "Make up one's mind.", ko: "결심하다." },
+            { id: 98, part: "partA", category: "Part A: 인간관계", en: "Have second thoughts.", ko: "재고하다 / 마음이 바뀌다." },
+            { id: 99, part: "partA", category: "Part A: 인간관계", en: "Sleep on it.", ko: "하룻밤 자면서 신중히 생각하다." },
+            { id: 100, part: "partA", category: "Part A: 인간관계", en: "Keep in touch.", ko: "계속 연락하고 지내다." },
+
+            // Part B (101~150)
+            { id: 101, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Register for a course.", ko: "수강 신청을 하다." },
+            { id: 102, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Drop a course.", ko: "수강을 취소하다." },
+            { id: 103, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Audit a class.", ko: "청강하다." },
+            { id: 104, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Prerequisite.", ko: "선수 과목." },
+            { id: 105, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Elective course.", ko: "선택 과목." },
+            { id: 106, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Required course.", ko: "필수 과목." },
+            { id: 107, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Syllabus.", ko: "강의 계획서." },
+            { id: 108, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Academic advisor.", ko: "지도 교수 / 학업 상담가." },
+            { id: 109, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Transcript.", ko: "성적 증명서." },
+            { id: 110, part: "partB", category: "Part B: 수강 신청 및 행정", en: "GPA (Grade Point Average).", ko: "평균 평점." },
+            { id: 111, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Tuition and fees.", ko: "등록금 및 수수료." },
+            { id: 112, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Financial aid.", ko: "학자금 지원." },
+            { id: 113, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Scholarship / Grant.", ko: "장학금 / 보조금." },
+            { id: 114, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Work-study program.", ko: "근로 장학 프로그램." },
+            { id: 115, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Extension.", ko: "기한 연장." },
+            { id: 116, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Deadline / Due date.", ko: "마감 기한." },
+            { id: 117, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Hand in / Turn in.", ko: "과제를 제출하다." },
+            { id: 118, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Fall behind.", ko: "진도를 못 따라가다 / 뒤처지다." },
+            { id: 119, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Catch up on.", ko: "밀린 공부나 일을 따라잡다." },
+            { id: 120, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Make-up exam.", ko: "보충 시험 / 재시험." },
+            { id: 121, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Pop quiz.", ko: "깜짝 쪽지 시험." },
+            { id: 122, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Midterm / Final exam.", ko: "중간고사 / 기말고사." },
+            { id: 123, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Term paper / Research paper.", ko: "학기말 보고서 / 연구 논문." },
+            { id: 124, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Office hours.", ko: "교수 면담 시간." },
+            { id: 125, part: "partB", category: "Part B: 수강 신청 및 행정", en: "Teaching Assistant (TA).", ko: "수업 조교." },
+            { id: 126, part: "partB", category: "Part B: 캠퍼스 시설", en: "Check out a book.", ko: "책을 대출하다." },
+            { id: 127, part: "partB", category: "Part B: 캠퍼스 시설", en: "Renew a book.", ko: "대출 기간을 연장하다." },
+            { id: 128, part: "partB", category: "Part B: 캠퍼스 시설", en: "Overdue fine.", ko: "연체료." },
+            { id: 129, part: "partB", category: "Part B: 캠퍼스 시설", en: "On reserve.", ko: "관내 열람용으로 지정된 / 대출 불가한." },
+            { id: 130, part: "partB", category: "Part B: 캠퍼스 시설", en: "Interlibrary loan.", ko: "상호 대차 서비스." },
+            { id: 131, part: "partB", category: "Part B: 캠퍼스 시설", en: "Reference section.", ko: "참고 도서 구역." },
+            { id: 132, part: "partB", category: "Part B: 캠퍼스 시설", en: "Periodical.", ko: "정기 간행물." },
+            { id: 133, part: "partB", category: "Part B: 캠퍼스 시설", en: "Stacks.", ko: "도서관 서가." },
+            { id: 134, part: "partB", category: "Part B: 캠퍼스 시설", en: "Call number.", ko: "도서 청구 기호." },
+            { id: 135, part: "partB", category: "Part B: 캠퍼스 시설", en: "Dormitory (Dorm) / Residence hall.", ko: "기숙사." },
+            { id: 136, part: "partB", category: "Part B: 캠퍼스 시설", en: "Room and board.", ko: "숙식." },
+            { id: 137, part: "partB", category: "Part B: 캠퍼스 시설", en: "Meal plan.", ko: "식권 제도." },
+            { id: 138, part: "partB", category: "Part B: 캠퍼스 시설", en: "Off-campus housing.", ko: "학교 밖 주거 시설." },
+            { id: 139, part: "partB", category: "Part B: 캠퍼스 시설", en: "Utility bills.", ko: "공과금." },
+            { id: 140, part: "partB", category: "Part B: 캠퍼스 시설", en: "Security deposit.", ko: "보증금." },
+            { id: 141, part: "partB", category: "Part B: 캠퍼스 시설", en: "Lease.", ko: "임대차 계약." },
+            { id: 142, part: "partB", category: "Part B: 캠퍼스 시설", en: "Cafeteria / Dining hall.", ko: "구내식당." },
+            { id: 143, part: "partB", category: "Part B: 캠퍼스 시설", en: "Student union.", ko: "학생회관." },
+            { id: 144, part: "partB", category: "Part B: 캠퍼스 시설", en: "Health center / Infirmary.", ko: "보건소 / 의무실." },
+            { id: 145, part: "partB", category: "Part B: 캠퍼스 시설", en: "Registrar's office.", ko: "학적과 / 교무처." },
+            { id: 146, part: "partB", category: "Part B: 캠퍼스 시설", en: "Bursar's office.", ko: "재무과 / 등록금 수납처." },
+            { id: 147, part: "partB", category: "Part B: 캠퍼스 시설", en: "Career center.", ko: "취업 지원 센터." },
+            { id: 148, part: "partB", category: "Part B: 캠퍼스 시설", en: "Bulletin board.", ko: "게시판." },
+            { id: 149, part: "partB", category: "Part B: 캠퍼스 시설", en: "Parking permit.", ko: "주차 허가증." },
+            { id: 150, part: "partB", category: "Part B: 캠퍼스 시설", en: "Shuttle bus.", ko: "교내 순환 버스." },
+
+            // Part C (151~200)
+            { id: 151, part: "partC", category: "Part C: 강의 도입 및 전환", en: "Today's lecture will focus on...", ko: "오늘 강의는 ~에 초점을 맞출 것입니다." },
+            { id: 152, part: "partC", category: "Part C: 강의 도입 및 전환", en: "I'd like to begin by discussing...", ko: "~에 대해 논의하면서 시작하겠습니다." },
+            { id: 153, part: "partC", category: "Part C: 강의 도입 및 전환", en: "Let's turn our attention to...", ko: "~로 주의를 돌려봅시다." },
+            { id: 154, part: "partC", category: "Part C: 강의 도입 및 전환", en: "That brings us to...", ko: "그것이 우리를 ~로 이끕니다 / 다음 주제로 넘어갑니다." },
+            { id: 155, part: "partC", category: "Part C: 강의 도입 및 전환", en: "Before we move on, let's review...", ko: "다음으로 넘어가기 전에 ~을 복습합시다." },
+            { id: 156, part: "partC", category: "Part C: 강의 도입 및 전환", en: "As you may recall from our last class...", ko: "지난 수업에서 기억하시겠지만..." },
+            { id: 157, part: "partC", category: "Part C: 강의 도입 및 전환", en: "This ties in with...", ko: "이것은 ~와 연관됩니다." },
+            { id: 158, part: "partC", category: "Part C: 강의 도입 및 전환", en: "In light of this...", ko: "이러한 관점에서 볼 때..." },
+            { id: 159, part: "partC", category: "Part C: 강의 도입 및 전환", en: "To put it another way...", ko: "다시 말해서..." },
+            { id: 160, part: "partC", category: "Part C: 강의 도입 및 전환", en: "What I'm getting at is...", ko: "제가 말하고자 하는 요점은..." },
+            { id: 161, part: "partC", category: "Part C: 강의 도입 및 전환", en: "Incidentally / By the way...", ko: "그건 그렇고 / 덧붙여 말하자면..." },
+            { id: 162, part: "partC", category: "Part C: 강의 도입 및 전환", en: "Let's digress for a moment.", ko: "잠시 다른 이야기로 빠지겠습니다." },
+            { id: 163, part: "partC", category: "Part C: 강의 도입 및 전환", en: "Getting back to the main point...", ko: "다시 본론으로 돌아가서..." },
+            { id: 164, part: "partC", category: "Part C: 강의 도입 및 전환", en: "We'll cover that in more detail later.", ko: "그 부분은 나중에 더 자세히 다루겠습니다." },
+            { id: 165, part: "partC", category: "Part C: 강의 도입 및 전환", en: "Time is running short, so...", ko: "시간이 얼마 남지 않았으니..." },
+            { id: 166, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "It is worth noting that...", ko: "~라는 점은 주목할 가치가 있습니다." },
+            { id: 167, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "Keep in mind that...", ko: "~라는 것을 명심하세요." },
+            { id: 168, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "The key point here is...", ko: "여기서 핵심 포인트는..." },
+            { id: 169, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "What's particularly interesting is...", ko: "특히 흥미로운 점은..." },
+            { id: 170, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "Crucially / Significantly...", ko: "결정적으로 / 중요하게도..." },
+            { id: 171, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "A prime example of this is...", ko: "이것의 대표적인 예는 ~입니다." },
+            { id: 172, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "To illustrate this point...", ko: "이 점을 설명하기 위해..." },
+            { id: 173, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "Case in point.", ko: "딱 들어맞는 사례." },
+            { id: 174, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "Namely / Specifically...", ko: "즉 / 구체적으로 말하면..." },
+            { id: 175, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "First and foremost...", ko: "무엇보다도 먼저..." },
+            { id: 176, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "In addition / Furthermore...", ko: "게다가 / 더욱이..." },
+            { id: 177, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "Not only... but also...", ko: "~뿐만 아니라 ~도 역시." },
+            { id: 178, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "Play a vital role in...", ko: "~에서 중요한 역할을 하다." },
+            { id: 179, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "Account for.", ko: "~을 설명하다 / 비율을 차지하다." },
+            { id: 180, part: "partC", category: "Part C: 강조, 예시 및 열거", en: "Stem from / Result from.", ko: "~에서 유래하다 / 기인하다." },
+            { id: 181, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "On the contrary...", ko: "그와는 반대로..." },
+            { id: 182, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Conversely / In contrast...", ko: "역으로 / 대조적으로..." },
+            { id: 183, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Whereas / While...", ko: "~인 반면에..." },
+            { id: 184, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Despite / In spite of...", ko: "~에도 불구하고..." },
+            { id: 185, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "However, recent studies suggest...", ko: "하지만 최근 연구들은 ~라고 시사합니다." },
+            { id: 186, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "This challenges the traditional view that...", ko: "이것은 ~라는 전통적인 견해에 도전합니다." },
+            { id: 187, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Contrary to popular belief...", ko: "대중의 믿음과는 반대로..." },
+            { id: 188, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "There is still some debate over...", ko: "~에 대해서는 여전히 논쟁이 있습니다." },
+            { id: 189, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "It remains to be seen whether...", ko: "~인지는 좀 더 지켜봐야 합니다." },
+            { id: 190, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "A major breakthrough.", ko: "획기적인 발전 / 돌파구." },
+            { id: 191, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Drawback / Shortcoming.", ko: "결점 / 단점." },
+            { id: 192, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Plausible / Feasible.", ko: "그럴듯한 / 실행 가능한." },
+            { id: 193, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Controversial.", ko: "논란이 많은." },
+            { id: 194, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Prevalent / Widespread.", ko: "널리 퍼진 / 만연한." },
+            { id: 195, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Obsolete.", ko: "더 이상 쓰이지 않는 / 구식의." },
+            { id: 196, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Consequently / As a result...", ko: "결과적으로..." },
+            { id: 197, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "Therefore / Thus...", ko: "그러므로 / 따라서..." },
+            { id: 198, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "In essence / Basically...", ko: "본질적으로 / 기본적으로..." },
+            { id: 199, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "To sum up / In conclusion...", ko: "요약하자면 / 결론적으로..." },
+            { id: 200, part: "partC", category: "Part C: 대조, 반박 및 결론", en: "That wraps up today's lecture.", ko: "이것으로 오늘 강의를 마치겠습니다." }
+        ];
+
+        class FlashcardApp {
+            constructor() {
+                this.currentPart = 'all';
+                this.statusFilter = 'all'; // 'all', 'known', 'unknown'
+                this.currentIndex = 0;
+                this.isFlipped = false;
+                this.knownIds = this.loadKnownIds();
+                this.filteredList = [];
+                
+                this.init();
+            }
+
+            init() {
+                this.updateFilteredList();
+                this.renderCard();
+                this.updateProgressUI();
+                this.setupKeyboardEvents();
+                this.setupSwipeEvents();
+            }
+
+            loadKnownIds() {
+                try {
+                    const saved = localStorage.getItem('toefl_flashcard_known');
+                    return saved ? JSON.parse(saved) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            saveKnownIds() {
+                try {
+                    localStorage.setItem('toefl_flashcard_known', JSON.stringify(this.knownIds));
+                } catch (e) {}
+            }
+
+            updateFilteredList() {
+                this.filteredList = rawData.filter(item => {
+                    const matchPart = (this.currentPart === 'all' || item.part === this.currentPart);
+                    const isKnown = this.knownIds.includes(item.id);
+                    
+                    let matchStatus = true;
+                    if (this.statusFilter === 'known') matchStatus = isKnown;
+                    if (this.statusFilter === 'unknown') matchStatus = !isKnown;
+
+                    return matchPart && matchStatus;
+                });
+
+                if (this.currentIndex >= this.filteredList.length) {
+                    this.currentIndex = Math.max(0, this.filteredList.length - 1);
+                }
+            }
+
+            setPart(part) {
+                this.currentPart = part;
+                this.currentIndex = 0;
+                this.isFlipped = false;
+                
+                document.querySelectorAll('.part-btn').forEach(btn => {
+                    btn.className = "part-btn px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition text-slate-300 hover:text-white hover:bg-slate-700/50";
+                });
+                document.getElementById(`part-${part}`).className = "part-btn px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition bg-indigo-600 text-white shadow-md";
+
+                this.updateFilteredList();
+                this.renderCard();
+                this.updateProgressUI();
+            }
+
+            setStatusFilter(status) {
+                this.statusFilter = status;
+                this.currentIndex = 0;
+                this.isFlipped = false;
+
+                document.querySelectorAll('.status-btn').forEach(btn => {
+                    btn.className = "status-btn px-3 py-1 rounded-lg text-xs font-medium transition text-slate-400 hover:text-white";
+                });
+                document.getElementById(`status-${status}`).className = "status-btn px-3 py-1 rounded-lg text-xs font-medium transition bg-slate-700 text-white shadow-sm";
+
+                this.updateFilteredList();
+                this.renderCard();
+                this.updateProgressUI();
+            }
+
+            flipCard() {
+                if (this.filteredList.length === 0) return;
+                this.isFlipped = !this.isFlipped;
+                const cardInner = document.getElementById('cardInner');
+                if (this.isFlipped) {
+                    cardInner.style.transform = 'rotateY(180deg)';
+                } else {
+                    cardInner.style.transform = 'rotateY(0deg)';
+                }
+            }
+
+            nextCard() {
+                if (this.filteredList.length === 0) return;
+                if (this.isFlipped) this.flipCard(); // reset flip
+                setTimeout(() => {
+                    this.currentIndex = (this.currentIndex + 1) % this.filteredList.length;
+                    this.renderCard();
+                }, this.isFlipped ? 150 : 0);
+            }
+
+            prevCard() {
+                if (this.filteredList.length === 0) return;
+                if (this.isFlipped) this.flipCard();
+                setTimeout(() => {
+                    this.currentIndex = (this.currentIndex - 1 + this.filteredList.length) % this.filteredList.length;
+                    this.renderCard();
+                }, this.isFlipped ? 150 : 0);
+            }
+
+            markKnown(isKnown) {
+                if (this.filteredList.length === 0) return;
+                const item = this.filteredList[this.currentIndex];
+                const index = this.knownIds.indexOf(item.id);
+
+                if (isKnown && index === -1) {
+                    this.knownIds.push(item.id);
+                    this.showToast('🎉 알아요! 암기 완료로 체크되었습니다.');
+                } else if (!isKnown && index > -1) {
+                    this.knownIds.splice(index, 1);
+                    this.showToast('복습 필요 카드로 변경되었습니다.');
+                }
+
+                this.saveKnownIds();
+                this.updateProgressUI();
+                
+                // Automatically move to next card after marking
+                setTimeout(() => {
+                    this.nextCard();
+                }, 300);
+            }
+
+            shuffleCards() {
+                // Fisher-Yates shuffle on rawData or filtered items
+                for (let i = rawData.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [rawData[i], rawData[j]] = [rawData[j], rawData[i]];
+                }
+                this.currentIndex = 0;
+                if (this.isFlipped) this.flipCard();
+                this.updateFilteredList();
+                this.renderCard();
+                this.showToast('✨ 카드가 무작위로 섞였습니다.');
+            }
+
+            resetProgress() {
+                if (confirm('모든 암기 진도 기록을 초기화하시겠습니까?')) {
+                    this.knownIds = [];
+                    this.saveKnownIds();
+                    this.updateFilteredList();
+                    this.renderCard();
+                    this.updateProgressUI();
+                    this.showToast('진도가 초기화되었습니다.');
+                }
+            }
+
+            renderCard() {
+                const total = this.filteredList.length;
+                
+                // Update Counts in Filter Badges
+                const knownCount = rawData.filter(item => (this.currentPart === 'all' || item.part === this.currentPart) && this.knownIds.includes(item.id)).length;
+                const unknownCount = rawData.filter(item => (this.currentPart === 'all' || item.part === this.currentPart) && !this.knownIds.includes(item.id)).length;
+                
+                document.getElementById('countKnown').textContent = knownCount;
+                document.getElementById('countUnknown').textContent = unknownCount;
+                document.getElementById('totalIndexDisplay').textContent = total;
+
+                if (total === 0) {
+                    document.getElementById('cardId').textContent = '-';
+                    document.getElementById('cardIdBack').textContent = '-';
+                    document.getElementById('cardBadge').textContent = '결과 없음';
+                    document.getElementById('cardEn').textContent = '조건에 해당하는 카드가 없습니다.';
+                    document.getElementById('cardKo').textContent = '필터를 변경해보세요.';
+                    document.getElementById('cardEnSub').textContent = '-';
+                    document.getElementById('currentIndexDisplay').textContent = 0;
+                    return;
+                }
+
+                document.getElementById('currentIndexDisplay').textContent = this.currentIndex + 1;
+                const item = this.filteredList[this.currentIndex];
+
+                // Populate Front & Back
+                document.getElementById('cardId').textContent = item.id;
+                document.getElementById('cardIdBack').textContent = item.id;
+                document.getElementById('cardBadge').textContent = item.category;
+                document.getElementById('cardEn').textContent = item.en;
+                document.getElementById('cardKo').textContent = item.ko;
+                document.getElementById('cardEnSub').textContent = item.en;
+
+                // Highlight Known Button State
+                const isKnown = this.knownIds.includes(item.id);
+                const knownBtn = document.getElementById('knownBtn');
+                const unknownBtn = document.getElementById('unknownBtn');
+
+                if (isKnown) {
+                    knownBtn.className = "flex-1 max-w-xs bg-emerald-600 text-white border border-emerald-500 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-md";
+                    unknownBtn.className = "flex-1 max-w-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-sm";
+                } else {
+                    knownBtn.className = "flex-1 max-w-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-sm";
+                    unknownBtn.className = "flex-1 max-w-xs bg-amber-600/30 text-amber-300 border border-amber-500/50 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 shadow-md";
+                }
+            }
+
+            updateProgressUI() {
+                const total = 200;
+                const completed = this.knownIds.length;
+                const percent = Math.round((completed / total) * 100);
+
+                document.getElementById('progressText').textContent = `${completed} / ${total} (${percent}%)`;
+                document.getElementById('progressBar').style.width = `${percent}%`;
+            }
+
+            showToast(msg) {
+                const toast = document.getElementById('toast');
+                document.getElementById('toastMsg').textContent = msg;
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 2200);
+            }
+
+            setupKeyboardEvents() {
+                window.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.flipCard();
+                    } else if (e.code === 'ArrowRight') {
+                        this.nextCard();
+                    } else if (e.code === 'ArrowLeft') {
+                        this.prevCard();
+                    } else if (e.code === 'KeyK') {
+                        this.markKnown(true);
+                    } else if (e.code === 'KeyU') {
+                        this.markKnown(false);
+                    }
+                });
+            }
+
+            setupSwipeEvents() {
+                let startX = 0;
+                const card = document.getElementById('flashcard');
+                
+                card.addEventListener('touchstart', (e) => {
+                    startX = e.changedTouches[0].screenX;
+                }, { passive: true });
+
+                card.addEventListener('touchend', (e) => {
+                    const endX = e.changedTouches[0].screenX;
+                    const diff = endX - startX;
+                    if (Math.abs(diff) > 50) {
+                        if (diff > 0) {
+                            this.prevCard();
+                        } else {
+                            this.nextCard();
+                        }
+                    }
+                }, { passive: true });
+            }
+        }
+
+        // Initialize App on Window Load
+        let app;
+        window.onload = () => {
+            app = new FlashcardApp();
+        };
+    </script>
+</body>
+</html>
